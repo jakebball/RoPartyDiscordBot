@@ -7,6 +7,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import javax.security.auth.login.LoginException;
 
+//MADE CHANES UDAPTE
+
 public class Main extends ListenerAdapter {
 
     private static Config config = new Config();
