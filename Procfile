@@ -1,1 +1,0 @@
-web: java -jar target/RoBot-1.0-SNAPSHOT.jar
