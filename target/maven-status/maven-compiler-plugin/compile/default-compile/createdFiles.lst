@@ -1,1 +1,4 @@
-Main.class
+com\discord\main\Config.class
+com\discord\main\ExploitReport.class
+com\discord\main\Main.class
+com\discord\main\BugReport.class
