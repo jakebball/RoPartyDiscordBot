@@ -79,7 +79,7 @@
                             <manifest>
                                 <addClasspath>true</addClasspath>
                                 <classpathPrefix>lib/</classpathPrefix>
-                                <mainClass>com.discord.main.Main</mainClass>
+                                <mainClass>com/discord/main/Main.java</mainClass>
                             </manifest>
                         </archive>
                     </configuration>
