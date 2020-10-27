@@ -54,7 +54,7 @@
                         </descriptorRefs>
                         <archive>
                             <manifest>
-                                <mainClass>bradley.discord.bot.DiscordBot</mainClass>
+                                <mainClass>com.discord.main.Main</mainClass>
                             </manifest>
                         </archive>
                     </configuration>
