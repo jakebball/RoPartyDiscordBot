@@ -83,7 +83,7 @@ public class Main extends ListenerAdapter {
         private ArrayList<String> questionsArray = new ArrayList<>();
         private ArrayList<String> questionAnswers = new ArrayList<>();
         private int currentIndex = 0;
-        private final int timeoutLimit = 10;
+        private final int timeoutLimit = 120;
         private boolean hasResponded = false;
         private boolean hasFinished = false;
 
