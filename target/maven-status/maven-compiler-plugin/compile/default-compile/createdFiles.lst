@@ -1,2 +1,3 @@
 com\discord\main\Config.class
 com\discord\main\Main.class
+com\discord\main\Main$BugReport.class
