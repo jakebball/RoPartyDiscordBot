@@ -4,10 +4,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
-import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -45,6 +42,8 @@ public class Main extends ListenerAdapter {
             case "bugreport":
                 event.getMessage().getChannel().sendMessage("<@" + event.getAuthor().getIdLong() + ">, bug report will continue in dms").complete();
                 BugReport bugReport = new BugReport(event.getAuthor(), jda, event.getGuild());
+                Thread thread = new Thread(bugReport);
+                thread.start();
                 break;
             case "studio":
                 event.getMessage().getChannel().sendMessage("<@" + event.getAuthor().getIdLong() + ">, https://www.roblox.com/groups/4946462/Surfer-Studios#!/about").complete();
@@ -52,8 +51,11 @@ public class Main extends ListenerAdapter {
             case "group":
                 event.getMessage().getChannel().sendMessage("<@" + event.getAuthor().getIdLong() + ">, https://www.roblox.com/groups/7786786/RoParty#!/about").complete();
                 break;
-            case "game":
+            case "merch":
                 event.getMessage().getChannel().sendMessage("<@" + event.getAuthor().getIdLong() + ">, Coming Soon :sunglasses:").complete();
+                break;
+            case "game":
+                event.getMessage().getChannel().sendMessage("<@" + event.getAuthor().getIdLong() + ">, Merch Coming Soon :sunglasses:").complete();
                 break;
             case "exploitreport":
                 event.getMessage().getChannel().sendMessage("<@" + event.getAuthor().getIdLong() + ">, exploit report will continue in dms").complete();
@@ -66,31 +68,34 @@ public class Main extends ListenerAdapter {
                 embedBuilder.addField("!studio", "Shows a link to the studio behind RoParty", false);
                 embedBuilder.addField("!game", "Shows a link to the official game, RoParty!", false);
                 embedBuilder.addField("!exploitreport", "coming soon", false);
-                embedBuilder.addField("!bugreport", "coming soon", false);
+                embedBuilder.addField("!bugreport", "files a  bug report", false);
                 embedBuilder.addField("!rohelp", "A list of all the current commands", false);
-
+                embedBuilder.setColor(Color.RED);
                 event.getMessage().getChannel().sendMessage(embedBuilder.build()).complete();
                 break;
         }
     }
 
-    class BugReport extends ListenerAdapter {
+    class BugReport extends ListenerAdapter implements Runnable {
 
         private final User user;
         private final Guild guild;
         private ArrayList<String> questionsArray = new ArrayList<>();
         private ArrayList<String> questionAnswers = new ArrayList<>();
         private int currentIndex = 0;
+        private final int timeoutLimit = 10;
+        private boolean hasResponded = false;
+        private boolean hasFinished = false;
 
         public BugReport(User user, JDA jda, Guild guild) {
             jda.addEventListener(this);
             this.user = user;
             this.guild = guild;
             questionsArray.add("Hi! \uD83D\uDC4B Thanks for filling a bug report. Please remember to make sure there is not already a report made in the #bug-reports channel. "
-                    + "If you found one, check the reaction so we know you also experienced it. If it has not been made before please answer the questions so we can help squash this bug. "
+                    + "If you found one, tap the thumbs up so we know you also experienced it. If it has not been made before please answer the questions so we can help squash this bug. "
             + "You will have 3 minutes to answer each question or you can type cancel. Please state your roblox username.");
             questionsArray.add("please state your platform your experienced the bug on. PC, Mac, Xbox, Mobile, Etc.");
-            questionsArray.add("please describe your bug in the best detail possible");
+            questionsArray.add("please describe your bug in the best detail possible and what caused this to happen");
             askQuestion();
         }
 
@@ -104,6 +109,7 @@ public class Main extends ListenerAdapter {
                createReport();
                jda.removeEventListener(this);
                Main.BugReports += 1;
+               hasFinished = true;
                return true;
            }
         }
@@ -113,6 +119,7 @@ public class Main extends ListenerAdapter {
             if(event.getAuthor().equals(user)){
                 questionAnswers.add(event.getMessage().getContentRaw());
                 askQuestion();
+                hasResponded = true;
             }
         }
 
@@ -121,12 +128,38 @@ public class Main extends ListenerAdapter {
             embedBuilder.setTitle("Bug Report #" + Main.BugReports);
             embedBuilder.addField("Roblox Username", questionAnswers.get(0), false);
             embedBuilder.addField("Platform", questionAnswers.get(1), false);
-            embedBuilder.addField("Description", questionAnswers.get(2), false);
+            embedBuilder.addField("Bug Description", questionAnswers.get(2), false);
             embedBuilder.setAuthor(user.getAsTag(), null, user.getAvatarUrl());
             embedBuilder.setColor(Color.RED);
             if(embedBuilder.isValidLength()){
                 guild.getTextChannelById("769408576485458010").sendMessage("<@" +user.getIdLong() + ">").queue();
-                guild.getTextChannelById("769408576485458010").sendMessage(embedBuilder.build()).queue();
+                guild.getTextChannelById("769408576485458010").sendMessage(embedBuilder.build()).queue(message -> message.addReaction("👍").queue());
+            }
+        }
+
+        @Override
+        public void run(){
+
+            Thread thread = Thread.currentThread();
+
+            for(int i=0;i<=timeoutLimit;i++){
+                try {
+                    thread.sleep(1000);
+                } catch (Exception e) {}
+
+                if(hasResponded){
+                    i = 0;
+                    hasResponded = false;
+                }
+
+                if(hasFinished) {
+                    break;
+                }
+            }
+
+            if(!hasFinished){
+                jda.removeEventListener(this);
+                user.openPrivateChannel().complete().sendMessage("Report Timed Out").queue();
             }
         }
     }
