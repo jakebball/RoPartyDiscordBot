@@ -9,6 +9,6 @@ public class Config {
     public static String prefix = "!";
 
     public Config() throws IOException {
-        this.token = new String(Files.readAllBytes(Paths.get("C:/Users/Jake/Desktop/Bot Development/Roparty/.gitignore.txt")));
+        this.token = new String(Files.readAllBytes(Paths.get("C:/Users/Jake/Desktop/Bot Development/Roparty/.token.txt")));
     }
 }
