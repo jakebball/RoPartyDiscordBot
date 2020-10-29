@@ -10,19 +10,21 @@ import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import javax.security.auth.login.LoginException;
 import java.awt.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 
 
 public class Main extends ListenerAdapter {
 
-    private static Config config = new Config();
+    private static Config config;
     private static JDA jda;
     private static int BugReports = 1;
     private static int ExploitReports = 1;
     private static ArrayList<User> alreadyFilling = new ArrayList<>();
 
-    public static void main(String[] args) throws LoginException, InterruptedException{
-
+    public static void main(String[] args) throws LoginException, InterruptedException, IOException {
+        config = new Config();
         JDABuilder builder = JDABuilder.createLight(config.token);
         builder.setStatus(OnlineStatus.ONLINE);
         builder.setActivity(Activity.playing("RoParty"));
