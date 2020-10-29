@@ -83,7 +83,7 @@ public class Main extends ListenerAdapter {
                 embedBuilder.addField("!group", "Shows a link to the official RoParty group", false);
                 embedBuilder.addField("!studio", "Shows a link to the studio behind RoParty", false);
                 embedBuilder.addField("!game", "Shows a link to the official game, RoParty!", false);
-                embedBuilder.addField("!exploitreport", "coming soon", false);
+                embedBuilder.addField("!exploitreport", "files an exploit report", false);
                 embedBuilder.addField("!bugreport", "files a  bug report", false);
                 embedBuilder.addField("!rohelp", "A list of all the current commands", false);
                 embedBuilder.setColor(Color.RED);
