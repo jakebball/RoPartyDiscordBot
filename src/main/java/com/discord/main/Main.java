@@ -5,12 +5,11 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import javax.security.auth.login.LoginException;
 import java.awt.*;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -34,7 +33,7 @@ public class Main extends ListenerAdapter {
     }
 
     @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
+    public void onGuildMessageReceived(GuildMessageReceivedEvent event) {
         if(event.getAuthor().isBot()) return;
         if(!event.getMessage().getContentRaw().startsWith(config.prefix)) return;
         String command = event.getMessage().getContentRaw().substring(config.prefix.length()).toLowerCase();
@@ -44,13 +43,14 @@ public class Main extends ListenerAdapter {
                 event.getMessage().getChannel().sendMessage("<@" + event.getAuthor().getIdLong() + ">, Party! \uD83C\uDF89").complete();
                 break;
             case "bugreport":
-                System.out.println(alreadyFilling.toString());
                 if(!alreadyFilling.contains(event.getAuthor())){
+                    alreadyFilling.add(event.getAuthor());
                     event.getMessage().getChannel().sendMessage("<@" + event.getAuthor().getIdLong() + ">, bug report will continue in dms").complete();
                     BugReport bugReport = new BugReport(event.getAuthor(), jda, event.getGuild());
                     Thread bugThread = new Thread(bugReport);
                     bugThread.start();
-                    alreadyFilling.add(event.getAuthor());
+                } else {
+                    event.getMessage().getChannel().sendMessage("<@" + event.getAuthor().getIdLong() + ">, you are already filling a report. Type cancel in the DM to start a new one").queue();
                 }
                 break;
             case "studio":
@@ -66,10 +66,15 @@ public class Main extends ListenerAdapter {
                 event.getMessage().getChannel().sendMessage("<@" + event.getAuthor().getIdLong() + ">, Merch Coming Soon :sunglasses:").complete();
                 break;
             case "exploitreport":
-                event.getMessage().getChannel().sendMessage("<@" + event.getAuthor().getIdLong() + ">, exploit report will continue in dms").complete();
-                ExploitReport exploitReport = new ExploitReport(event.getAuthor(), jda, event.getGuild());
-                Thread exploitThread = new Thread(exploitReport);
-                exploitThread.start();
+                if(!alreadyFilling.contains(event.getAuthor())) {
+                    alreadyFilling.add(event.getAuthor());
+                    event.getMessage().getChannel().sendMessage("<@" + event.getAuthor().getIdLong() + ">, exploit report will continue in dms").complete();
+                    ExploitReport exploitReport = new ExploitReport(event.getAuthor(), jda, event.getGuild());
+                    Thread exploitThread = new Thread(exploitReport);
+                    exploitThread.start();
+                } else {
+                    event.getMessage().getChannel().sendMessage("<@" + event.getAuthor().getIdLong() + ">, you are already filling a report. Type cancel in the DM to start a new one").queue();
+                }
                 break;
             case "rohelp":
                 EmbedBuilder embedBuilder = new EmbedBuilder();
@@ -179,11 +184,11 @@ public class Main extends ListenerAdapter {
             }
 
             if(!hasFinished){
-                jda.removeEventListener(this);
                 channel.sendMessage("Report Timed Out").queue();
                 channel.close();
             }
 
+            jda.removeEventListener(this);
             alreadyFilling.remove(user);
         }
     }
@@ -197,11 +202,13 @@ public class Main extends ListenerAdapter {
         private final int timeoutLimit = 120;
         private boolean hasResponded = false;
         private boolean hasFinished = false;
+        private PrivateChannel channel;
 
         public ExploitReport(User user, JDA jda, Guild guild) {
             jda.addEventListener(this);
             this.user = user;
             this.guild = guild;
+            this.channel = user.openPrivateChannel().complete();
             questionsArray.add("Hi! \uD83D\uDC4B Thanks for filling an exploit report. Please answer the questions truthfully and to the best of your ability. " +
                     "We take your exploit reports very seriously so if you are found to be lying you will receive a kick from the server. If you are kicked more then 2 times you will be permanently banned."
                     + "You will have 3 minutes to answer each question or you can type cancel. Please state your roblox username.");
@@ -212,15 +219,15 @@ public class Main extends ListenerAdapter {
 
         public boolean askQuestion(){
             if(currentIndex <= questionsArray.size() - 1){
-                user.openPrivateChannel().complete().sendMessage(questionsArray.get(currentIndex)).queue();
+                channel.sendMessage(questionsArray.get(currentIndex)).queue();
                 currentIndex += 1;
                 return false;
             } else {
-                user.openPrivateChannel().complete().sendMessage("Thanks for reporting the exploit! Our moderation teams will look over the report you sent and investigate into the suspected exploiter."
+                channel.sendMessage("Thanks for reporting the exploit! Our moderation teams will look over the report you sent and investigate into the suspected exploiter."
                 + " To protect the privacy of you and the exploiter, the exploit report will not be publicly visible").queue();
                 createReport();
                 jda.removeEventListener(this);
-                Main.BugReports += 1;
+                Main.ExploitReports += 1;
                 hasFinished = true;
                 return true;
             }
@@ -229,10 +236,14 @@ public class Main extends ListenerAdapter {
         @Override
         public void onPrivateMessageReceived(PrivateMessageReceivedEvent event) {
             if(event.getAuthor().equals(user)){
-                System.out.println(event.getMessage().getContentRaw());
-                questionAnswers.add(event.getMessage().getContentRaw());
-                askQuestion();
-                hasResponded = true;
+                if(event.getMessage().getContentRaw().equalsIgnoreCase("cancel")){
+                    hasFinished = true;
+                    channel.sendMessage("Canceled Report").queue();
+                } else {
+                    questionAnswers.add(event.getMessage().getContentRaw());
+                    askQuestion();
+                    hasResponded = true;
+                }
             }
         }
 
@@ -270,9 +281,12 @@ public class Main extends ListenerAdapter {
             }
 
             if(!hasFinished){
-                jda.removeEventListener(this);
-                user.openPrivateChannel().complete().sendMessage("Report Timed Out").queue();
+                channel.sendMessage("Report Timed Out").queue();
+                channel.close();
             }
+
+            jda.removeEventListener(this);
+            alreadyFilling.remove(user);
         }
     }
 }
