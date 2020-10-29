@@ -26,7 +26,7 @@ public class Main extends ListenerAdapter {
         config = new Config();
         JDABuilder builder = JDABuilder.createLight(config.token);
         builder.setStatus(OnlineStatus.ONLINE);
-        builder.setActivity(Activity.playing("RoParty"));
+        builder.setActivity(Activity.playing("type !rohelp"));
         jda = builder.build();
         jda.awaitReady();
         jda.addEventListener(new Main());
