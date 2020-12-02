@@ -8,6 +8,11 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import javax.security.auth.login.LoginException;
 import java.awt.*;
 import java.io.IOException;
@@ -94,15 +99,15 @@ public class Main extends ListenerAdapter {
 
     class BugReport extends ListenerAdapter implements Runnable {
 
-        private final User user;
-        private final Guild guild;
+        private User user;
+        private Guild guild;
         private ArrayList<String> questionsArray = new ArrayList<>();
         private ArrayList<String> questionAnswers = new ArrayList<>();
         private int currentIndex = 0;
-        private final int timeoutLimit = 120;
+        private int timeoutLimit = 120;
         private boolean hasResponded = false;
         private boolean hasFinished = false;
-        private PrivateChannel channel;
+        private final PrivateChannel channel;
 
         public BugReport(User user, JDA jda, Guild guild) {
             jda.addEventListener(this);
@@ -148,7 +153,7 @@ public class Main extends ListenerAdapter {
             }
         }
 
-        public void createReport(){
+        public void createReport() {
             EmbedBuilder embedBuilder = new EmbedBuilder();
             embedBuilder.setTitle("Bug Report #" + Main.BugReports);
             embedBuilder.addField("Roblox Username", questionAnswers.get(0), false);
